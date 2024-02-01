@@ -1,0 +1,8 @@
+#+ summary: Get the latest HRA version
+#+ description: Queries and returns the latest version number of the HRA
+
+SELECT (STR(?v) as ?version)
+FROM <https://purl.humanatlas.io/collection/hra>
+WHERE {
+  <https://purl.humanatlas.io/collection/hra> <http://schema.org/version> ?v
+}

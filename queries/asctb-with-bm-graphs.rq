@@ -1,0 +1,19 @@
+#+ summary: All ASCT+B tables with gene biomarkers
+#+ description: Get all ASCT+B table PURLs that have at least one characterizing biomarker set defined
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ccf: <http://purl.org/ccf/>
+PREFIX has_characterizing_biomarker_set: <http://purl.obolibrary.org/obo/RO_0015004>
+
+SELECT DISTINCT ?table
+WHERE {
+  GRAPH ?table {
+    ?table rdf:type owl:Ontology .
+    [] owl:onProperty has_characterizing_biomarker_set: .
+    [] ccf:ccf_biomarker_type ?bm_type .
+    FILTER(?bm_type = 'gene')
+    FILTER(STRSTARTS(STR(?table), 'https://purl.humanatlas.io/asct-b'))
+  }
+}
+ORDER BY ?table

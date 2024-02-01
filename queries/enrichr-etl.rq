@@ -1,0 +1,42 @@
+#+ summary: Compiles an HRA ASCT+B graph into Enrichr format
+#+ description: Queries an ASCT+B graph for characterizing gene biomarker sets per cell type and outputs data easily converted into Enrichr format
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX ccf: <http://purl.org/ccf/>
+PREFIX CCF: <https://purl.humanatlas.io/graph/ccf>
+PREFIX has_characterizing_biomarker_set: <http://purl.obolibrary.org/obo/RO_0015004>
+
+SELECT (CONCAT(?ct_label, ' - ', ?table_name) as ?label)
+  ('' as ?description)
+  (GROUP_CONCAT(?bm_label; separator="|") as ?biomarkers)
+#{{GRAPH}}
+WHERE {
+  {
+    SELECT DISTINCT ?table_name ?ct_label ?bn3 ?bm_label
+    WHERE {
+      ?table rdf:type owl:Ontology .
+
+      ?cell_type rdfs:subClassOf [
+        owl:onProperty has_characterizing_biomarker_set: ;
+        owl:someValuesFrom [ owl:intersectionOf ?bn3 ]] .
+      ?bn3 rdf:rest*/rdf:first [
+        owl:onProperty ccf:has_marker_component ;
+        owl:someValuesFrom ?biomarker
+      ] .
+
+      ?biomarker ccf:ccf_biomarker_type ?bm_type .
+
+      ?biomarker ccf:ccf_pref_label ?bm_label .
+      ?cell_type ccf:ccf_pref_label ?ct_label .
+      BIND(REPLACE(REPLACE(REPLACE(STR(?table), 'https://purl.humanatlas.io/asct-b/', ''), '-', ' '), '.copy', '') as ?table_name)
+
+      # Keep only gene biomarkers
+      FILTER(?bm_type = 'gene')
+    }
+  }
+}
+GROUP BY ?table_name ?ct_label ?bn3
+ORDER BY ?table_name ?ct_label ?bn3
